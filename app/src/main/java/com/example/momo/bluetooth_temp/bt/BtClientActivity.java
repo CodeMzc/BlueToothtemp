@@ -3,7 +3,10 @@ package com.example.momo.bluetooth_temp.bt;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -15,6 +18,7 @@ import com.example.momo.bluetooth_temp.APP;
 import com.example.momo.bluetooth_temp.R;
 import com.example.momo.bluetooth_temp.util.BtReceiver;
 
+import java.io.IOException;
 
 
 public class BtClientActivity extends Activity implements BtBase.Listener, BtReceiver.Listener, BtDevAdapter.Listener {
@@ -23,7 +27,8 @@ public class BtClientActivity extends Activity implements BtBase.Listener, BtRec
     private BtReceiver mBtReceiver;
     private final BtDevAdapter mBtDevAdapter = new BtDevAdapter(this);
     private final BtClient mClient = new BtClient(this);
-
+    MediaPlayer player;
+    private int play_flag = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +42,8 @@ public class BtClientActivity extends Activity implements BtBase.Listener, BtRec
         mLogs = findViewById(R.id.tv_log);
         mBtReceiver = new BtReceiver(this, this);//注册蓝牙广播
         BluetoothAdapter.getDefaultAdapter().startDiscovery();
-
-
+        player = MediaPlayer.create(this,R.raw.music_warning1);
+        player.setVolume(1f,1f);
     }
 
     @Override
@@ -74,7 +79,7 @@ public class BtClientActivity extends Activity implements BtBase.Listener, BtRec
 
 
     @Override
-    public void socketNotify(int state, final Object obj) {
+    public void socketNotify(int state, final Object obj){
         if (isDestroyed())
             return;
         String msg = null;
@@ -91,6 +96,29 @@ public class BtClientActivity extends Activity implements BtBase.Listener, BtRec
             case BtBase.Listener.MSG:
                 msg = String.format("\n%s", obj);
                 Log.e("蓝牙客户端","发来了消息");
+                Log.e("蓝牙客户端",msg);
+                if(msg.contains("异常")){
+                    if(play_flag == 0){
+                        if(player != null){
+
+                            player.start();
+                            play_flag = 1;
+                        }
+                        else {
+                            player = MediaPlayer.create(this,R.raw.music_warning1);
+                            player.setVolume(1f,1f);
+                        }
+                    }
+                }
+                if(msg.contains("正常")){
+                    if(player != null){
+//                        player.reset();
+                        player.pause();
+                        player.release();
+                        player = null;
+                        play_flag = 0;
+                    }
+                }
                 mLogs.setText(msg);
                 break;
         }

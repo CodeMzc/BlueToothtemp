@@ -56,9 +56,9 @@ public class BtBase {
 
                 InputStream myin = mSocket.getInputStream();
                 if(myin.read() == 0) {
-                    waterStatus = "水量不足\n请增加供给量";
+                    waterStatus = "输液异常警报！";
                 }else if (myin.read() == 1){
-                    waterStatus = "水量充足";
+                    waterStatus = "输液正常！";
                 }else{
                     waterStatus = "未收到消息";
                 }
